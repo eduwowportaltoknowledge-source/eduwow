@@ -3,253 +3,192 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EduWow Collaborative Work</title>
+<title>EduWow Worksheet</title>
 <style>
-body {font-family:'Poppins',sans-serif; background:#a0e9fd; margin:0; padding:0;}
-header {text-align:center; padding:20px; background:#3ca2f5; color:white; font-size:2em; font-weight:bold; box-shadow:0 5px 10px rgba(0,0,0,0.2);}
-.container {max-width:900px; margin:20px auto; background:rgba(255,255,255,0.9); padding:20px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1);}
-button {padding:10px 15px; margin:5px; border:none; border-radius:10px; background:linear-gradient(to right,#2b6cb0,#3ca2f5); color:white; font-size:1em; cursor:pointer; transition: transform .2s, box-shadow .2s;}
-button:hover {transform:scale(1.05); box-shadow:0 5px 15px rgba(0,0,0,0.3);}
-input, select, textarea {width:100%; border-radius:10px; padding:8px; border:1px solid #ddd; margin-bottom:10px;}
-textarea {resize:none;}
-.hidden{display:none;}
-.group-box {border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:10px; background:#f0f8ff;}
-.activity {margin:10px 0;}
-.activity label {font-weight:bold;}
-.feedback {color:green; font-size:0.9em;}
-.score-display {font-weight:bold; color:#2b6cb0;}
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #a0e9fd;
+    margin: 0;
+    padding: 0;
+}
+header {
+    text-align: center;
+    padding: 20px;
+    background: #3ca2f5;
+    color: white;
+    font-size: 2em;
+    font-weight: bold;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+}
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    background: rgba(255,255,255,0.9);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+button {
+    padding: 10px 15px;
+    margin: 5px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(to right,#2b6cb0,#3ca2f5);
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+}
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.subject-btn {width: 150px;}
+.activity {margin: 10px 0;}
+textarea {width: 100%; border-radius: 10px; padding: 10px; border: 1px solid #ddd; resize: none;}
+input[type="text"] {width: 100%; border-radius: 10px; padding: 8px; border: 1px solid #ddd;}
+.activity-header {display:flex; justify-content: space-between; align-items:center; margin-top:15px;}
+.feedback {font-size:0.9em; color:green; margin-top:5px;}
 </style>
 </head>
 <body>
-<header>🌟 EduWow Collaborative Work</header>
+<header>🌟 EduWow Worksheets</header>
 
-<div class="container" id="mainContainer">
-    <!-- Student view -->
-    <div id="studentView" class="hidden">
-        <h2>Groups</h2>
-        <button onclick="createGroup()">➕ Create Group</button>
-        <h3>Existing Groups</h3>
-        <div id="groupsList"></div>
-        <h3>Selected Group Score: <span id="groupScoreDisplay">0</span></h3>
-    </div>
+<div class="container" id="subjectContainer">
+    <h2>Select a Subject</h2>
+    <div id="subjectButtons"></div>
+</div>
 
-    <!-- Teacher view -->
-    <div id="teacherView" class="hidden">
-        <h2>Teacher Panel: Monitor Groups</h2>
-        <div id="teacherGroups"></div>
-    </div>
-
-    <!-- Activities view -->
-    <div id="activityContainer" class="hidden">
-        <h2 id="groupNameHeader">Group Activities</h2>
-        <h3>Comprehension</h3>
-        <div id="comprehensionList"></div>
-        <h3>Numeration/Math</h3>
-        <div id="numerationList"></div>
-        <h3>Literacy</h3>
-        <div id="literacyList"></div>
-        <button id="submitGroupBtn">Submit Group Answers</button>
-        <button onclick="backToGroups()">Back to Groups</button>
-        <h3>Current Group Score: <span id="liveGroupScore">0</span></h3>
-    </div>
+<div class="container hidden" id="activityContainer">
+    <h2 id="activitySubject">Subject Activities</h2>
+    <div id="activitiesList"></div>
+    <button id="submitBtn">Submit Answers</button>
+    <button id="backBtn">Back to Subjects</button>
 </div>
 
 <script>
 // Detect current user
 let currentUser = JSON.parse(localStorage.getItem('currentUser'));
-if(!currentUser){alert('No user logged in'); window.location.href='index.html';}
+if(!currentUser){
+    alert('No user logged in'); window.location.href='index.html';
+}
 
-// Sample activities (6 per category)
-const sampleActivities = {
-    "Comprehension":[
-        "Read a short story and answer questions",
-        "Summarize the story in your own words",
-        "Identify the main character",
-        "List 3 key events",
-        "Write the moral of the story",
-        "Answer comprehension multiple-choice questions"
-    ],
-    "Numeration":[
-        "Solve addition problems",
-        "Solve subtraction problems",
-        "Complete the number sequences",
-        "Solve multiplication problems",
-        "Solve division problems",
-        "Answer word problems"
-    ],
-    "Literacy":[
-        "Write a short paragraph about your day",
-        "Identify verbs in a sentence",
-        "Correct the grammar mistakes",
-        "Write a short story",
-        "Match words with definitions",
-        "Translate simple sentences"
-    ]
+// Subjects
+const subjects = ["Filipino","English","Math","Mother Tongue","MAPEH"];
+
+// Sample activities per subject
+let sampleActivities = {
+    "Filipino":["Gumawa ng pangungusap gamit ang salitang 'Araw'","Tukuyin ang pantig sa mga salita","Bumuo ng maikling kwento","Ihambing ang dalawang tula","Isalin sa Filipino ang pangungusap","Punan ang patlang sa talata","Tukuyin ang simuno at panaguri","Magkwento tungkol sa paboritong guro"],
+    "English":["Write a paragraph about your day","Underline the verbs in the sentence","Match words with their meanings","Write a short story","Translate to English: 'Mahal kita'","Correct the grammar mistakes","Answer the comprehension questions","Describe your favorite animal"],
+    "Math":["Add the following numbers","Subtract the numbers","Solve multiplication problems","Solve division problems","Find the missing number in sequences","Draw shapes and label","Solve word problems","Calculate perimeter of a rectangle"],
+    "Mother Tongue":["Gumawa ng tula","Kumpletuhin ang pangungusap","Tukuyin ang bahagi ng pananalita","Isalin ang pangungusap","Magkwento tungkol sa pamilya","Punan ang talata","Ihambing ang dalawang kwento","Sagutin ang mga tanong sa pakikinig"],
+    "MAPEH":["Draw your favorite sports equipment","List 5 healthy foods","Write a dance sequence","Identify musical instruments","Name the parts of the body","Explain importance of exercise","Color a music note","Describe a sport you like"]
 };
 
-// Initialize groups
-let groups = JSON.parse(localStorage.getItem('collabGroups'))||{};
-
-// --- Student Functions --- //
-function renderGroups(){
-    const listDiv = document.getElementById('groupsList');
-    listDiv.innerHTML = "";
-    for(let groupName in groups){
-        let div = document.createElement('div');
-        div.classList.add('group-box');
-        div.innerHTML = `<strong>${groupName}</strong> - Members: ${groups[groupName].members.join(", ")} 
-        <button onclick="joinGroup('${groupName}')">Join/Enter</button>`;
-        listDiv.appendChild(div);
-    }
-}
-function updateGroupScoreDisplay(groupName){
-    let score = groups[groupName]?.groupScore || 0;
-    document.getElementById('groupScoreDisplay').innerText = score;
-    document.getElementById('liveGroupScore').innerText = score;
+// Store activities in localStorage if not exists
+if(!localStorage.getItem('activities')){
+    localStorage.setItem('activities',JSON.stringify(sampleActivities));
 }
 
-// Student panel display
-if(currentUser.role === "student"){ 
-    document.getElementById('studentView').classList.remove('hidden');
-    renderGroups();
-}
-
-// Create group
-function createGroup(){
-    let groupName = prompt("Enter new group name:");
-    if(groupName){
-        if(groups[groupName]){alert("Group name already exists"); return;}
-        groups[groupName] = {members:[currentUser.name], activities:{}, groupScore:0};
-        localStorage.setItem('collabGroups',JSON.stringify(groups));
-        renderGroups();
-    }
-}
-
-// Join/Enter group
-function joinGroup(groupName){
-    if(!groups[groupName].members.includes(currentUser.name)){
-        groups[groupName].members.push(currentUser.name);
-        localStorage.setItem('collabGroups',JSON.stringify(groups));
-    }
-    showGroupActivities(groupName);
-}
-
-// Show group activities
-let currentGroup = "";
-function showGroupActivities(groupName){
-    currentGroup = groupName;
-    document.getElementById('studentView').classList.add('hidden');
-    document.getElementById('activityContainer').classList.remove('hidden');
-    document.getElementById('groupNameHeader').innerText = `Group: ${groupName} Activities`;
-    updateGroupScoreDisplay(groupName);
-
-    ['Comprehension','Numeration','Literacy'].forEach(category=>{
-        let container = document.getElementById(category.toLowerCase()+'List');
-        container.innerHTML = "";
-        sampleActivities[category].forEach((act,i)=>{
-            let div = document.createElement('div');
-            div.classList.add('activity');
-            div.innerHTML = `<label>${i+1}. ${act}</label>
-                             <textarea id="${category}-${i}" rows="2" placeholder="Your answer here..."></textarea>`;
-            container.appendChild(div);
-        });
-    });
-
-    document.getElementById('submitGroupBtn').onclick = ()=>{
-        let group = groups[groupName];
-        group.activities = {};
-        let totalPoints = 0;
-
-        ['Comprehension','Numeration','Literacy'].forEach(category=>{
-            group.activities[category] = [];
-            sampleActivities[category].forEach((act,i)=>{
-                let ans = document.getElementById(`${category}-${i}`).value;
-                let point = ans.trim() ? 1 : 0;
-                totalPoints += point;
-                group.activities[category].push({activity:act, answer:ans, point:point});
-            });
-        });
-        group.groupScore = totalPoints;
-        groups[groupName] = group;
-        localStorage.setItem('collabGroups',JSON.stringify(groups));
-        alert('Group answers submitted! Total points: '+totalPoints);
-        updateGroupScoreDisplay(groupName);
-        backToGroups();
-    }
-}
-
-// Back to groups
-function backToGroups(){
-    document.getElementById('activityContainer').classList.add('hidden');
-    document.getElementById('studentView').classList.remove('hidden');
-    renderGroups();
-}
-
-// Real-time update for all students
-window.addEventListener('storage', function(e){
-    if(e.key==='collabGroups'){
-        groups = JSON.parse(e.newValue);
-        if(currentGroup){
-            updateGroupScoreDisplay(currentGroup);
-        }
-        if(currentUser.role === "student"){
-            renderGroups();
-        }
-        if(currentUser.role === "teacher"){
-            renderTeacherGroups();
-        }
-    }
+// Render subject buttons
+const subjectButtons = document.getElementById('subjectButtons');
+subjects.forEach(sub=>{
+    let btn = document.createElement('button');
+    btn.innerText = sub;
+    btn.classList.add('subject-btn');
+    btn.onclick = ()=>showActivities(sub);
+    subjectButtons.appendChild(btn);
 });
 
-// --- Teacher Functions --- //
-if(currentUser.role === "teacher"){document.getElementById('teacherView').classList.remove('hidden');}
-function renderTeacherGroups(){
-    const tDiv = document.getElementById('teacherGroups');
-    tDiv.innerHTML = "";
-    for(let groupName in groups){
-        let g = groups[groupName];
+// Show activities
+function showActivities(subject){
+    document.getElementById('subjectContainer').classList.add('hidden');
+    document.getElementById('activityContainer').classList.remove('hidden');
+    document.getElementById('activitySubject').innerText = subject + " Activities";
+
+    const listDiv = document.getElementById('activitiesList');
+    listDiv.innerHTML = "";
+
+    let activities = JSON.parse(localStorage.getItem('activities'))[subject];
+
+    activities.forEach((act, i)=>{
         let div = document.createElement('div');
-        div.classList.add('group-box');
-        div.innerHTML = `<strong>${groupName}</strong> - Members: ${g.members.join(", ")} - Score: ${g.groupScore}
-        <button onclick="viewGroup('${groupName}')">View/Edit</button>`;
-        tDiv.appendChild(div);
+        div.classList.add('activity');
+
+        if(currentUser.role === "teacher"){
+            div.innerHTML = `
+            <div class="activity-header">
+                <input type="text" value="${act}" id="act-${i}">
+                <button onclick="deleteActivity(${i},'${subject}')">❌</button>
+            </div>
+            `;
+        } else {
+            div.innerHTML = `
+            <label>${i+1}. ${act}</label>
+            <textarea id="answer-${i}" rows="2" placeholder="Your answer here..."></textarea>
+            <div class="feedback" id="feedback-${i}"></div>
+            `;
+        }
+
+        listDiv.appendChild(div);
+    });
+
+    if(currentUser.role === "teacher"){
+        let addBtn = document.createElement('button');
+        addBtn.innerText = "➕ Add Activity";
+        addBtn.onclick = ()=>addActivity(subject);
+        listDiv.appendChild(addBtn);
     }
 }
-renderTeacherGroups();
 
-function viewGroup(groupName){
-    let g = groups[groupName];
-    let content = "";
-    ['Comprehension','Numeration','Literacy'].forEach(category=>{
-        content += `<h4>${category}</h4>`;
-        g.activities[category]?.forEach((act,i)=>{
-            content += `<div class="activity">
-            <label>${i+1}. ${act.activity}</label>
-            <input type="number" value="${act.point||0}" onchange="updatePoint('${groupName}','${category}',${i},this.value)"> Point
-            <textarea placeholder="Feedback" onchange="updateFeedback('${groupName}','${category}',${i},this.value)">${act.feedback||''}</textarea>
-            </div>`;
-        });
+// Add activity (teacher)
+function addActivity(subject){
+    let newAct = prompt("Enter new activity:");
+    if(newAct){
+        let activities = JSON.parse(localStorage.getItem('activities'));
+        activities[subject].push(newAct);
+        localStorage.setItem('activities',JSON.stringify(activities));
+        showActivities(subject);
+    }
+}
+
+// Delete activity (teacher)
+function deleteActivity(index,subject){
+    let activities = JSON.parse(localStorage.getItem('activities'));
+    activities[subject].splice(index,1);
+    localStorage.setItem('activities',JSON.stringify(activities));
+    showActivities(subject);
+}
+
+// Back to subjects
+document.getElementById('backBtn').onclick = ()=>{
+    document.getElementById('activityContainer').classList.add('hidden');
+    document.getElementById('subjectContainer').classList.remove('hidden');
+};
+
+// Submit answers (student)
+document.getElementById('submitBtn').onclick = ()=>{
+    if(currentUser.role !== "student") return;
+
+    const subject = document.getElementById('activitySubject').innerText.replace(" Activities","");
+    let activities = JSON.parse(localStorage.getItem('activities'))[subject];
+    let submissions = JSON.parse(localStorage.getItem('submissions'))||{};
+    if(!submissions[subject]) submissions[subject] = {};
+    submissions[subject][currentUser.name] = [];
+
+    activities.forEach((act,i)=>{
+        let ans = document.getElementById(`answer-${i}`).value;
+        submissions[subject][currentUser.name].push({activity:act, answer:ans, score:null, feedback:null});
     });
-    const tDiv = document.getElementById('teacherGroups');
-    tDiv.innerHTML = `<h3>${groupName} Details</h3>`+content+`<button onclick="renderTeacherGroups()">Back</button>`;
-}
 
-function updatePoint(groupName,category,index,value){
-    groups[groupName].activities[category][index].point = Number(value);
-    // Recalculate total group score
-    let total = 0;
-    ['Comprehension','Numeration','Literacy'].forEach(cat=>{
-        groups[groupName].activities[cat]?.forEach(a=>total+=Number(a.point||0));
-    });
-    groups[groupName].groupScore = total;
-    localStorage.setItem('collabGroups',JSON.stringify(groups));
-    renderTeacherGroups();
-}
+    localStorage.setItem('submissions',JSON.stringify(submissions));
+    alert('Answers submitted successfully!');
+    document.getElementById('activityContainer').classList.add('hidden');
+    document.getElementById('subjectContainer').classList.remove('hidden');
+};
 
-function updateFeedback(groupName,category,index,value){
-    groups[groupName].activities[category][index].feedback = value;
-    localStorage.setItem('collabGroups',JSON.stringify(groups));
-}
+// Optional: teachers can check submissions and provide scores/feedback
+// You can add a separate button or implement it later
 </script>
 </body>
 </html>
