@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Badge Monitor</title>
+<style>
+body{
+    font-family:'Poppins',sans-serif;
+    background: linear-gradient(to bottom, #a0e9fd, #fce7f3);
+    margin:0; padding:0;
+}
+header{
+    background: #ff9a9e; 
+    background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 100%);
+    color:white; 
+    text-align:center; 
+    padding:25px; 
+    font-size:2em; 
+    font-weight:bold; 
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+    border-bottom-left-radius:20px; 
+    border-bottom-right-radius:20px;
+}
+.container{
+    max-width:1000px;
+    margin:20px auto;
+    padding:20px;
+}
+.student-card{
+    border-radius:20px;
+    padding:20px;
+    margin:15px 0;
+    background: #fff3e0;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    transition: transform 0.3s;
+}
+.student-card:hover{
+    transform: scale(1.02);
+}
+.student-card h3{
+    margin-bottom:10px;
+    font-size:1.5em;
+    color:#ff6f61;
+}
+.points{
+    font-weight:bold;
+    color:#ff6f61;
+    margin-bottom:8px;
+    font-size:1.1em;
+}
+.badge{
+    display:inline-block;
+    margin:3px;
+    padding:6px 12px;
+    background: linear-gradient(45deg,#ffd700,#ffc107);
+    border-radius:15px;
+    color:#333;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    font-size:0.9em;
+}
+.badge:hover{
+    transform: scale(1.2);
+    box-shadow:0 6px 15px rgba(0,0,0,0.3);
+}
+.activity-list{
+    margin:5px 0;
+    padding-left:20px;
+}
+.activity-list li{
+    margin-bottom:5px;
+    font-size:0.95em;
+    line-height:1.4;
+}
+.card-header{
+    font-weight:bold;
+    font-size:1.1em;
+    color:#ff6f61;
+    margin-top:10px;
+    margin-bottom:5px;
+}
+</style>
+</head>
+<body>
+
+<header>🌟 Teacher Badge Monitor</header>
+
+<div class="container" id="monitorContainer">
+<!-- Student badges will appear here -->
+</div>
+
+<script>
+// Load data from localStorage
+let collabGroups = JSON.parse(localStorage.getItem('collabGroups')) || {};
+let eduPoints = parseInt(localStorage.getItem('eduPoints')) || 0;
+let eduBadges = JSON.parse(localStorage.getItem('eduBadges')) || [];
+let groupsCollab = JSON.parse(localStorage.getItem('groups')) || {};
+let currentUser = JSON.parse(localStorage.getItem('currentUser')) || {name:'', role:'teacher'};
+
+function getAllStudents(){
+    let studentSet = new Set();
+
+    // Worksheet groups
+    for(let g in collabGroups){
+        collabGroups[g].members.forEach(m => studentSet.add(m));
+    }
+
+    // Collaborative groups
+    for(let g in groupsCollab){
+        groupsCollab[g].members.forEach(m => studentSet.add(m));
+    }
+
+    // Current student (for game points)
+    if(currentUser.role==='student') studentSet.add(currentUser.name);
+
+    return Array.from(studentSet);
+}
+
+function renderMonitor(){
+    const container = document.getElementById('monitorContainer');
+    container.innerHTML = '';
+    let students = getAllStudents();
+
+    students.forEach(student=>{
+        let worksheetScore = 0;
+        let worksheetActivities = [];
+
+        // Worksheet points
+        for(let g in collabGroups){
+            if(collabGroups[g].members.includes(student)){
+                worksheetScore += collabGroups[g].groupScore || 0;
+                for(let cat in collabGroups[g].activities){
+                    collabGroups[g].activities[cat].forEach(a=>{
+                        worksheetActivities.push(`${cat}: ${a.activity} (${a.point} pts)`);
+                    });
+                }
+            }
+        }
+
+        // Collaborative tasks
+        let collabTasks = [];
+        for(let g in groupsCollab){
+            if(groupsCollab[g].members.includes(student)){
+                collabTasks.push(`${g} Task: ${groupsCollab[g].task || 'No task yet'}`);
+            }
+        }
+
+        // EduGame points/badges
+        let studentPoints = (currentUser.name===student) ? eduPoints : 0;
+        let studentBadges = (currentUser.name===student) ? eduBadges : [];
+
+        const card = document.createElement('div');
+        card.className = 'student-card';
+        card.innerHTML = `
+            <h3>👦 ${student}</h3>
+            <div class="points">📄 Worksheet Score: ${worksheetScore}</div>
+            <div class="points">🎮 Game Points: ${studentPoints}</div>
+            <div class="card-header">🏅 Badges:</div>
+            <div>${studentBadges.map(b=>`<span class="badge">${b}</span>`).join('')}</div>
+            <div class="card-header">📝 Worksheet Activities:</div>
+            <ul class="activity-list">${worksheetActivities.map(a=>`<li>${a}</li>`).join('')}</ul>
+            <div class="card-header">👥 Group Tasks:</div>
+            <ul class="activity-list">${collabTasks.map(t=>`<li>${t}</li>`).join('')}</ul>
+        `;
+        container.appendChild(card);
+    });
+}
+
+renderMonitor();
+
+// Real-time updates
+window.addEventListener('storage', function(e){
+    if(['collabGroups','eduPoints','eduBadges','groups'].includes(e.key)){
+        collabGroups = JSON.parse(localStorage.getItem('collabGroups')) || {};
+        eduPoints = parseInt(localStorage.getItem('eduPoints')) || 0;
+        eduBadges = JSON.parse(localStorage.getItem('eduBadges')) || [];
+        groupsCollab = JSON.parse(localStorage.getItem('groups')) || {};
+        renderMonitor();
+    }
+});
+</script>
+
+</body>
+</html>

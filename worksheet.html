@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduWow Collaborative Work</title>
+<style>
+body {font-family:'Poppins',sans-serif; background:#a0e9fd; margin:0; padding:0;}
+header {text-align:center; padding:20px; background:#3ca2f5; color:white; font-size:2em; font-weight:bold; box-shadow:0 5px 10px rgba(0,0,0,0.2);}
+.container {max-width:900px; margin:20px auto; background:rgba(255,255,255,0.9); padding:20px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1);}
+button {padding:10px 15px; margin:5px; border:none; border-radius:10px; background:linear-gradient(to right,#2b6cb0,#3ca2f5); color:white; font-size:1em; cursor:pointer; transition: transform .2s, box-shadow .2s;}
+button:hover {transform:scale(1.05); box-shadow:0 5px 15px rgba(0,0,0,0.3);}
+input, select, textarea {width:100%; border-radius:10px; padding:8px; border:1px solid #ddd; margin-bottom:10px;}
+textarea {resize:none;}
+.hidden{display:none;}
+.group-box {border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:10px; background:#f0f8ff;}
+.activity {margin:10px 0;}
+.activity label {font-weight:bold;}
+.feedback {color:green; font-size:0.9em;}
+.score-display {font-weight:bold; color:#2b6cb0;}
+</style>
+</head>
+<body>
+<header>🌟 EduWow Collaborative Work</header>
+
+<div class="container" id="mainContainer">
+    <!-- Student view -->
+    <div id="studentView" class="hidden">
+        <h2>Groups</h2>
+        <button onclick="createGroup()">➕ Create Group</button>
+        <h3>Existing Groups</h3>
+        <div id="groupsList"></div>
+        <h3>Selected Group Score: <span id="groupScoreDisplay">0</span></h3>
+    </div>
+
+    <!-- Teacher view -->
+    <div id="teacherView" class="hidden">
+        <h2>Teacher Panel: Monitor Groups</h2>
+        <div id="teacherGroups"></div>
+    </div>
+
+    <!-- Activities view -->
+    <div id="activityContainer" class="hidden">
+        <h2 id="groupNameHeader">Group Activities</h2>
+        <h3>Comprehension</h3>
+        <div id="comprehensionList"></div>
+        <h3>Numeration/Math</h3>
+        <div id="numerationList"></div>
+        <h3>Literacy</h3>
+        <div id="literacyList"></div>
+        <button id="submitGroupBtn">Submit Group Answers</button>
+        <button onclick="backToGroups()">Back to Groups</button>
+        <h3>Current Group Score: <span id="liveGroupScore">0</span></h3>
+    </div>
+</div>
+
+<script>
+// Detect current user
+let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+if(!currentUser){alert('No user logged in'); window.location.href='index.html';}
+
+// Sample activities (6 per category)
+const sampleActivities = {
+    "Comprehension":[
+        "Read a short story and answer questions",
+        "Summarize the story in your own words",
+        "Identify the main character",
+        "List 3 key events",
+        "Write the moral of the story",
+        "Answer comprehension multiple-choice questions"
+    ],
+    "Numeration":[
+        "Solve addition problems",
+        "Solve subtraction problems",
+        "Complete the number sequences",
+        "Solve multiplication problems",
+        "Solve division problems",
+        "Answer word problems"
+    ],
+    "Literacy":[
+        "Write a short paragraph about your day",
+        "Identify verbs in a sentence",
+        "Correct the grammar mistakes",
+        "Write a short story",
+        "Match words with definitions",
+        "Translate simple sentences"
+    ]
+};
+
+// Initialize groups
+let groups = JSON.parse(localStorage.getItem('collabGroups'))||{};
+
+// --- Student Functions --- //
+function renderGroups(){
+    const listDiv = document.getElementById('groupsList');
+    listDiv.innerHTML = "";
+    for(let groupName in groups){
+        let div = document.createElement('div');
+        div.classList.add('group-box');
+        div.innerHTML = `<strong>${groupName}</strong> - Members: ${groups[groupName].members.join(", ")} 
+        <button onclick="joinGroup('${groupName}')">Join/Enter</button>`;
+        listDiv.appendChild(div);
+    }
+}
+function updateGroupScoreDisplay(groupName){
+    let score = groups[groupName]?.groupScore || 0;
+    document.getElementById('groupScoreDisplay').innerText = score;
+    document.getElementById('liveGroupScore').innerText = score;
+}
+
+// Student panel display
+if(currentUser.role === "student"){ 
+    document.getElementById('studentView').classList.remove('hidden');
+    renderGroups();
+}
+
+// Create group
+function createGroup(){
+    let groupName = prompt("Enter new group name:");
+    if(groupName){
+        if(groups[groupName]){alert("Group name already exists"); return;}
+        groups[groupName] = {members:[currentUser.name], activities:{}, groupScore:0};
+        localStorage.setItem('collabGroups',JSON.stringify(groups));
+        renderGroups();
+    }
+}
+
+// Join/Enter group
+function joinGroup(groupName){
+    if(!groups[groupName].members.includes(currentUser.name)){
+        groups[groupName].members.push(currentUser.name);
+        localStorage.setItem('collabGroups',JSON.stringify(groups));
+    }
+    showGroupActivities(groupName);
+}
+
+// Show group activities
+let currentGroup = "";
+function showGroupActivities(groupName){
+    currentGroup = groupName;
+    document.getElementById('studentView').classList.add('hidden');
+    document.getElementById('activityContainer').classList.remove('hidden');
+    document.getElementById('groupNameHeader').innerText = `Group: ${groupName} Activities`;
+    updateGroupScoreDisplay(groupName);
+
+    ['Comprehension','Numeration','Literacy'].forEach(category=>{
+        let container = document.getElementById(category.toLowerCase()+'List');
+        container.innerHTML = "";
+        sampleActivities[category].forEach((act,i)=>{
+            let div = document.createElement('div');
+            div.classList.add('activity');
+            div.innerHTML = `<label>${i+1}. ${act}</label>
+                             <textarea id="${category}-${i}" rows="2" placeholder="Your answer here..."></textarea>`;
+            container.appendChild(div);
+        });
+    });
+
+    document.getElementById('submitGroupBtn').onclick = ()=>{
+        let group = groups[groupName];
+        group.activities = {};
+        let totalPoints = 0;
+
+        ['Comprehension','Numeration','Literacy'].forEach(category=>{
+            group.activities[category] = [];
+            sampleActivities[category].forEach((act,i)=>{
+                let ans = document.getElementById(`${category}-${i}`).value;
+                let point = ans.trim() ? 1 : 0;
+                totalPoints += point;
+                group.activities[category].push({activity:act, answer:ans, point:point});
+            });
+        });
+        group.groupScore = totalPoints;
+        groups[groupName] = group;
+        localStorage.setItem('collabGroups',JSON.stringify(groups));
+        alert('Group answers submitted! Total points: '+totalPoints);
+        updateGroupScoreDisplay(groupName);
+        backToGroups();
+    }
+}
+
+// Back to groups
+function backToGroups(){
+    document.getElementById('activityContainer').classList.add('hidden');
+    document.getElementById('studentView').classList.remove('hidden');
+    renderGroups();
+}
+
+// Real-time update for all students
+window.addEventListener('storage', function(e){
+    if(e.key==='collabGroups'){
+        groups = JSON.parse(e.newValue);
+        if(currentGroup){
+            updateGroupScoreDisplay(currentGroup);
+        }
+        if(currentUser.role === "student"){
+            renderGroups();
+        }
+        if(currentUser.role === "teacher"){
+            renderTeacherGroups();
+        }
+    }
+});
+
+// --- Teacher Functions --- //
+if(currentUser.role === "teacher"){document.getElementById('teacherView').classList.remove('hidden');}
+function renderTeacherGroups(){
+    const tDiv = document.getElementById('teacherGroups');
+    tDiv.innerHTML = "";
+    for(let groupName in groups){
+        let g = groups[groupName];
+        let div = document.createElement('div');
+        div.classList.add('group-box');
+        div.innerHTML = `<strong>${groupName}</strong> - Members: ${g.members.join(", ")} - Score: ${g.groupScore}
+        <button onclick="viewGroup('${groupName}')">View/Edit</button>`;
+        tDiv.appendChild(div);
+    }
+}
+renderTeacherGroups();
+
+function viewGroup(groupName){
+    let g = groups[groupName];
+    let content = "";
+    ['Comprehension','Numeration','Literacy'].forEach(category=>{
+        content += `<h4>${category}</h4>`;
+        g.activities[category]?.forEach((act,i)=>{
+            content += `<div class="activity">
+            <label>${i+1}. ${act.activity}</label>
+            <input type="number" value="${act.point||0}" onchange="updatePoint('${groupName}','${category}',${i},this.value)"> Point
+            <textarea placeholder="Feedback" onchange="updateFeedback('${groupName}','${category}',${i},this.value)">${act.feedback||''}</textarea>
+            </div>`;
+        });
+    });
+    const tDiv = document.getElementById('teacherGroups');
+    tDiv.innerHTML = `<h3>${groupName} Details</h3>`+content+`<button onclick="renderTeacherGroups()">Back</button>`;
+}
+
+function updatePoint(groupName,category,index,value){
+    groups[groupName].activities[category][index].point = Number(value);
+    // Recalculate total group score
+    let total = 0;
+    ['Comprehension','Numeration','Literacy'].forEach(cat=>{
+        groups[groupName].activities[cat]?.forEach(a=>total+=Number(a.point||0));
+    });
+    groups[groupName].groupScore = total;
+    localStorage.setItem('collabGroups',JSON.stringify(groups));
+    renderTeacherGroups();
+}
+
+function updateFeedback(groupName,category,index,value){
+    groups[groupName].activities[category][index].feedback = value;
+    localStorage.setItem('collabGroups',JSON.stringify(groups));
+}
+</script>
+</body>
+</html>

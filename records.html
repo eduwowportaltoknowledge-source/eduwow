@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Records Monitor</title>
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to bottom, #ffd6d6, #ff9999);
+    margin: 0; padding: 0;
+}
+header {
+    background: linear-gradient(90deg,#e53935,#f44336);
+    color: white; text-align: center; padding: 25px;
+    font-size: 2em; font-weight: bold;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
+.container {
+    max-width: 1200px; margin: 20px auto; padding: 20px;
+}
+.records-buttons {
+    display:flex; justify-content:center; gap:20px; margin-bottom:30px;
+}
+.record-btn {
+    flex:1; padding:20px; font-size:1.2em; font-weight:600;
+    border:none; border-radius:20px; cursor:pointer;
+    color:white; transition:0.3s; box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
+.record-btn:hover {transform:scale(1.05); box-shadow:0 8px 20px rgba(0,0,0,0.3);}
+.game-record {background: linear-gradient(90deg,#ef5350,#e53935);}
+.worksheet-record {background: linear-gradient(90deg,#f44336,#d32f2f);}
+.collab-record {background: linear-gradient(90deg,#e57373,#ef5350);}
+.record-section {display:none; margin-top:20px;}
+.record-section h3 {color:#b71c1c; margin-bottom:15px;}
+.record-table {width:100%; border-collapse:collapse; margin-bottom:30px;}
+.record-table th, .record-table td {
+    border:1px solid #f44336; padding:8px; text-align:center;
+}
+.record-table th {background:#e53935; color:white;}
+.badge {display:inline-block;margin:3px 3px 0 0;padding:5px 10px;background:linear-gradient(45deg,#ffcccb,#ff9999);border-radius:12px;color:#b71c1c;font-weight:600;font-size:0.9em;}
+.back-btn {margin-top:10px;padding:10px 20px;border:none;border-radius:15px;background:#e53935;color:white;cursor:pointer; font-weight:600; transition:0.3s;}
+.back-btn:hover{background:#b71c1c; transform:scale(1.05);}
+</style>
+</head>
+<body>
+
+<header>🌹 Teacher Records Dashboard</header>
+
+<div class="container">
+    <div class="records-buttons">
+        <button class="record-btn game-record" onclick="showSection('game')">🎮 Game Records</button>
+        <button class="record-btn worksheet-record" onclick="showSection('worksheet')">📄 Worksheet Records</button>
+        <button class="record-btn collab-record" onclick="showSection('collab')">👥 Group Collaboration Records</button>
+    </div>
+
+    <!-- Game Records -->
+    <div id="game" class="record-section">
+        <h3>Game Progress & Points</h3>
+        <table class="record-table">
+            <thead>
+                <tr><th>Student</th><th>Points</th><th>Badges</th></tr>
+            </thead>
+            <tbody id="gameBody"></tbody>
+        </table>
+        <button class="back-btn" onclick="hideSections()">Back</button>
+    </div>
+
+    <!-- Worksheet Records -->
+    <div id="worksheet" class="record-section">
+        <h3>Worksheet Activities & Average Points</h3>
+        <table class="record-table">
+            <thead>
+                <tr><th>Student</th><th>Activity</th><th>Points</th></tr>
+            </thead>
+            <tbody id="worksheetBody"></tbody>
+        </table>
+        <button class="back-btn" onclick="hideSections()">Back</button>
+    </div>
+
+    <!-- Collaboration Records -->
+    <div id="collab" class="record-section">
+        <h3>Group Collaboration & Tasks</h3>
+        <table class="record-table">
+            <thead>
+                <tr><th>Student</th><th>Group</th><th>Task</th></tr>
+            </thead>
+            <tbody id="collabBody"></tbody>
+        </table>
+        <button class="back-btn" onclick="hideSections()">Back</button>
+    </div>
+</div>
+
+<script>
+// ===== Load data from localStorage =====
+let collabGroups = JSON.parse(localStorage.getItem('collabGroups')) || {};
+let eduPoints = parseInt(localStorage.getItem('eduPoints')) || 0;
+let eduBadges = JSON.parse(localStorage.getItem('eduBadges')) || [];
+let groupsCollab = JSON.parse(localStorage.getItem('groups')) || {};
+let currentUser = JSON.parse(localStorage.getItem('currentUser')) || {name:'Teacher', role:'teacher'};
+
+// ===== Get all students =====
+function getAllStudents(){
+    let studentSet = new Set();
+    for(let g in collabGroups){ collabGroups[g].members.forEach(m=>studentSet.add(m)); }
+    for(let g in groupsCollab){ groupsCollab[g].members.forEach(m=>studentSet.add(m)); }
+    return Array.from(studentSet);
+}
+
+// ===== Show Section =====
+function showSection(sec){
+    hideSections();
+    document.getElementById(sec).style.display='block';
+    renderRecords(sec);
+}
+
+// ===== Hide all sections =====
+function hideSections(){
+    document.querySelectorAll('.record-section').forEach(s=>s.style.display='none');
+}
+
+// ===== Render Records =====
+function renderRecords(section){
+    const students = getAllStudents();
+    if(section==='game'){
+        const tbody = document.getElementById('gameBody');
+        tbody.innerHTML='';
+        students.forEach(s=>{
+            tbody.innerHTML += `<tr>
+                <td>${s}</td>
+                <td>${currentUser.name===s ? eduPoints : 0}</td>
+                <td>${currentUser.name===s ? eduBadges.map(b=>`<span class="badge">${b}</span>`).join('') : ''}</td>
+            </tr>`;
+        });
+    } else if(section==='worksheet'){
+        const tbody = document.getElementById('worksheetBody');
+        tbody.innerHTML='';
+        students.forEach(s=>{
+            for(let g in collabGroups){
+                if(collabGroups[g].members.includes(s)){
+                    for(let cat in collabGroups[g].activities){
+                        collabGroups[g].activities[cat].forEach(a=>{
+                            tbody.innerHTML += `<tr>
+                                <td>${s}</td>
+                                <td>${a.activity}</td>
+                                <td>${a.point}</td>
+                            </tr>`;
+                        });
+                    }
+                }
+            }
+        });
+    } else if(section==='collab'){
+        const tbody = document.getElementById('collabBody');
+        tbody.innerHTML='';
+        students.forEach(s=>{
+            for(let g in groupsCollab){
+                if(groupsCollab[g].members.includes(s)){
+                    tbody.innerHTML += `<tr>
+                        <td>${s}</td>
+                        <td>${g}</td>
+                        <td>${groupsCollab[g].task || 'No task yet'}</td>
+                    </tr>`;
+                }
+            }
+        });
+    }
+}
+
+// ===== Real-time updates =====
+window.addEventListener('storage', function(e){
+    if(['collabGroups','eduPoints','eduBadges','groups'].includes(e.key)){
+        collabGroups = JSON.parse(localStorage.getItem('collabGroups')) || {};
+        eduPoints = parseInt(localStorage.getItem('eduPoints')) || 0;
+        eduBadges = JSON.parse(localStorage.getItem('eduBadges')) || [];
+        groupsCollab = JSON.parse(localStorage.getItem('groups')) || {};
+        document.querySelectorAll('.record-section').forEach(s=>{
+            if(s.style.display==='block') renderRecords(s.id);
+        });
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduGame — Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{background: linear-gradient(to bottom, #cceeff, #e0f7fa); min-height:100vh; display:flex; flex-direction:column; align-items:center; overflow-x:hidden;}
+header{margin:20px; text-align:center;}
+h1{font-family:'Fredoka One', cursive; font-size:2.2rem; color:#333; text-shadow:1px 1px 2px #fff;}
+h2{color:#333; margin-bottom:15px;}
+.dashboard, .game-area, .records-section, .teacher-panel{width:90%; max-width:900px; margin:20px auto; text-align:center; background: rgba(255,255,255,0.95); border-radius:20px; padding:30px; box-shadow:0 10px 25px rgba(0,0,0,0.15);}
+.subject-btn, .teacher-btn, .save-btn, .reset-btn{padding:12px 20px;margin:8px;font-size:1rem;border:none;border-radius:15px;cursor:pointer;transition:0.3s;color:#fff;font-weight:600;box-shadow:0 5px 15px rgba(0,0,0,0.2);}
+.subject-btn:hover, .teacher-btn:hover, .save-btn:hover, .reset-btn:hover{transform:scale(1.05); box-shadow:0 8px 20px rgba(0,0,0,0.3);}
+.Filipino{background: linear-gradient(45deg,#ff6b6b,#ff8787);}
+.English{background: linear-gradient(45deg,#4dabf7,#74c0fc);}
+.Math{background: linear-gradient(45deg,#51cf66,#69db7c);}
+.MotherTongue{background: linear-gradient(45deg,#fcc419,#ffd43b);}
+.MAPEH{background: linear-gradient(45deg,#845ef7,#b197fc);}
+.game-area, .teacher-panel{border-radius:25px; padding:25px; box-shadow:0 15px 30px rgba(0,0,0,0.2);}
+.quiz-card{border-radius:20px;padding:25px;margin-top:20px;box-shadow:0 8px 20px rgba(0,0,0,0.2); background: #fff;}
+.quiz-question{font-size:1.3rem; margin-bottom:20px; color:#333; font-weight:600;}
+.quiz-option{display:block;background:#f0f0f0;margin:12px auto;padding:12px 20px;width:65%;border-radius:15px;cursor:pointer;transition:0.3s; font-size:1rem; font-weight:500; box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+.quiz-option:hover{background:#d0f0ff; transform:translateY(-2px); box-shadow:0 6px 15px rgba(0,0,0,0.15);}
+.feedback{margin-top:12px;font-weight:600; color:#333; font-size:1rem; min-height:24px;}
+.points-badge{margin-top:25px;font-size:1rem; color:#333; font-weight:600;}
+.badge{display:inline-block;margin:5px;padding:5px 12px;background:linear-gradient(45deg,#ffd700,#ffc107);border-radius:8px;color:#333;font-weight:600;cursor:pointer;transition:0.3s; box-shadow:0 3px 10px rgba(0,0,0,0.2);}
+.badge:hover{transform:scale(1.1); box-shadow:0 5px 15px rgba(0,0,0,0.3);}
+.back-btn{margin-top:20px;padding:12px 20px;border:none;border-radius:15px;background:linear-gradient(45deg,#555,#777);color:#fff;cursor:pointer;font-weight:600; transition:0.3s; box-shadow:0 5px 15px rgba(0,0,0,0.2);}
+.back-btn:hover{background:linear-gradient(45deg,#333,#555); transform:scale(1.05);}
+.drag-container{display:flex; justify-content:center; flex-wrap:wrap; margin-top:20px;}
+.drag-item, .drop-target{width:130px;height:55px;margin:10px;display:flex;justify-content:center;align-items:center;border:2px dashed #888;border-radius:15px;cursor:pointer; background:#f9f9f9; font-weight:500; transition:0.3s; box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+.drag-item:hover{background:#d0f0ff;}
+.drop-target{background:#e0f7fa;}
+.dragging{opacity:0.5;}
+.hidden{display:none;}
+</style>
+</head>
+<body>
+
+<header>
+<h1>EduGame: Learn & Play!</h1>
+</header>
+
+<div class="dashboard">
+<!-- Buttons will be populated dynamically -->
+</div>
+
+<div class="game-area hidden">
+<div class="quiz-card">
+<div class="quiz-question" id="question"></div>
+<div id="options"></div>
+<div class="drag-container hidden" id="dragContainer"></div>
+<div class="feedback" id="feedback"></div>
+<button class="back-btn" onclick="backToDashboard()">Back to Dashboard</button>
+</div>
+<div class="points-badge">
+Points: <span id="points">0</span> | Badges: <span id="badges"></span>
+</div>
+</div>
+
+<div class="teacher-panel hidden">
+<h2>Teacher Panel</h2>
+<label for="subjectSelect">Select Subject:</label>
+<select id="subjectSelect"></select>
+<h3>Add / Edit Question</h3>
+<label>Question Type:</label>
+<select id="qType"><option value="mcq">Multiple Choice</option><option value="drag">Drag & Drop</option></select><br><br>
+<label>Question:</label>
+<input type="text" id="qText" style="width:80%"><br><br>
+<label>Options/Items (comma-separated):</label>
+<input type="text" id="qOptions" style="width:80%"><br><br>
+<label>Answers (index, comma-separated):</label>
+<input type="text" id="qAnswer" style="width:80%"><br><br>
+<button class="save-btn" onclick="saveQuestion()">Save Question</button>
+<button class="reset-btn" onclick="resetProgress()">Reset Student Progress</button>
+<button class="back-btn" onclick="exitTeacher()">Back to Dashboard</button>
+<h3>Existing Questions</h3>
+<div id="teacherQuestions"></div>
+</div>
+
+<script>
+// ================= User Detection =================
+let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+if (!currentUser) {
+  alert("Please login first.");
+  window.location.href = "index.html";
+}
+
+// ================= EduGame Data =================
+let quizzes = JSON.parse(localStorage.getItem('quizzes')) || {
+  Filipino: [{type:'mcq',q:"Ano ang pambansang hayop ng Pilipinas?", options:["Agila","Tigre","Kambing"], answer:[0]}],
+  English: [{type:'mcq',q:"What is the plural of 'child'?", options:["Childs","Children","Childes"], answer:[1]}],
+  Math: [{type:'mcq',q:"5 + 7 =", options:["12","10","15"], answer:[0]}],
+  MotherTongue: [{type:'mcq',q:"Ano ang ibig sabihin ng 'bahay'?", options:["House","Car","Tree"], answer:[0]}],
+  MAPEH: [{type:'mcq',q:"Anong instrumento ang may 6 na string?", options:["Guitar","Piano","Violin"], answer:[0]}]
+};
+
+let currentSubject="", currentIndex=0, points=parseInt(localStorage.getItem('eduPoints'))||0;
+let badges=JSON.parse(localStorage.getItem('eduBadges'))||[], consecutiveCorrect=0;
+
+updatePointsBadges();
+
+// ================= User Role Scan & Dashboard =================
+function scanUserRole(){
+  const headerTitle = document.querySelector('header h1');
+  if(currentUser.role === 'teacher'){
+    headerTitle.innerText = "EduGame: Teacher Dashboard";
+  } else {
+    headerTitle.innerText = "EduGame: Learn & Play!";
+  }
+  populateDashboardButtons();
+}
+
+function populateDashboardButtons(){
+  const dashboard = document.querySelector('.dashboard');
+  dashboard.innerHTML = `<h2>Select a Subject</h2>`;
+  const subjects = ['Filipino','English','Math','MotherTongue','MAPEH'];
+  subjects.forEach(subj => {
+    const btn = document.createElement('button');
+    btn.className = `subject-btn ${subj}`;
+    btn.innerText = subj;
+    btn.onclick = () => startGame(subj);
+    dashboard.appendChild(btn);
+  });
+  // Teacher Mode button
+  if(currentUser.role==='teacher'){
+    const teacherBtn = document.createElement('button');
+    teacherBtn.id = "teacherModeBtn";
+    teacherBtn.className = "teacher-btn";
+    teacherBtn.innerText = "Teacher Mode";
+    teacherBtn.onclick = showTeacherPanel;
+    dashboard.appendChild(teacherBtn);
+  }
+}
+
+// ================= Game Functions =================
+function startGame(subject){
+  currentSubject = subject; currentIndex=0;
+  document.querySelector('.dashboard').classList.add('hidden');
+  document.querySelector('.game-area').classList.remove('hidden');
+  showQuestion();
+}
+
+function showQuestion(){
+  const quiz = quizzes[currentSubject][currentIndex];
+  const optionsDiv = document.getElementById('options');
+  const dragContainer = document.getElementById('dragContainer');
+  document.getElementById('feedback').innerText=''; optionsDiv.innerHTML=''; dragContainer.innerHTML=''; dragContainer.classList.add('hidden');
+  document.getElementById('question').innerText = quiz.q;
+  if(quiz.type==='mcq'){
+    quiz.options.forEach((opt,i)=>{
+      const btn=document.createElement('button'); btn.className='quiz-option'; btn.innerText=opt;
+      btn.onclick=()=>checkAnswer(i); optionsDiv.appendChild(btn);
+    });
+  }
+}
+
+function checkAnswer(selected){
+  const quiz = quizzes[currentSubject][currentIndex]; 
+  const feedback=document.getElementById('feedback');
+  if(selected===quiz.answer[0]){
+    feedback.innerText="Correct! 🎉"; points+=10+(consecutiveCorrect*5); consecutiveCorrect++; checkBadge();
+  } else {feedback.innerText="Oops! Try again."; consecutiveCorrect=0;}
+  updatePointsBadges(); currentIndex++;
+  if(currentIndex<quizzes[currentSubject].length){setTimeout(showQuestion,1000);}
+  else{setTimeout(()=>{alert("Quiz Finished!");backToDashboard();},1000);}
+  saveProgress();
+}
+
+function checkBadge(){
+  if(points>=20 && badges.length<Math.floor(points/20)){
+    const newBadge=currentSubject+' Star'; badges.push(newBadge); document.getElementById('feedback').innerText+=` You earned a badge: ${newBadge}! 🏅`;
+  }
+}
+
+function updatePointsBadges(){
+  document.getElementById('points').innerText=points; 
+  document.getElementById('badges').innerText=badges.join(", "); 
+}
+
+function backToDashboard(){
+  document.querySelector('.game-area').classList.add('hidden'); 
+  document.querySelector('.dashboard').classList.remove('hidden');
+}
+
+// ================= Teacher Mode =================
+function showTeacherPanel(){
+  if(currentUser.role !== 'teacher'){alert("Access denied."); return;}
+  document.querySelector('.dashboard').classList.add('hidden');
+  document.querySelector('.teacher-panel').classList.remove('hidden');
+  populateSubjects(); displayQuestions();
+}
+
+function populateSubjects(){
+  const sel = document.getElementById('subjectSelect'); sel.innerHTML='';
+  for(const subj in quizzes){const opt=document.createElement('option'); opt.value=subj; opt.innerText=subj; sel.appendChild(opt);}
+}
+
+function saveQuestion(){
+  const subj = document.getElementById('subjectSelect').value;
+  const type = document.getElementById('qType').value;
+  const qText = document.getElementById('qText').value;
+  const opts = document.getElementById('qOptions').value.split(',').map(s=>s.trim());
+  const ans = document.getElementById('qAnswer').value.split(',').map(n=>parseInt(n.trim()));
+  quizzes[subj].push(type==='mcq'?{type:'mcq',q:qText,options:opts,answer:ans}:{type:'drag',q:qText,items:opts,targets:opts,answer:ans});
+  localStorage.setItem('quizzes', JSON.stringify(quizzes));
+  alert("Question saved!");
+  displayQuestions();
+}
+
+function displayQuestions(){
+  const subj = document.getElementById('subjectSelect')?document.getElementById('subjectSelect').value:'Filipino';
+  const div = document.getElementById('teacherQuestions'); div.innerHTML='';
+  quizzes[subj].forEach((q,i)=>{const d=document.createElement('div'); d.innerText=`${i+1}. [${q.type}] ${q.q}`; div.appendChild(d);});
+}
+
+function resetProgress(){
+  points=0; badges=[]; consecutiveCorrect=0; saveProgress(); updatePointsBadges(); alert("Student progress reset!");
+}
+
+function exitTeacher(){
+  document.querySelector('.teacher-panel').classList.add('hidden'); 
+  document.querySelector('.dashboard').classList.remove('hidden');
+  displayQuestions();
+}
+
+// ================= Storage =================
+function saveProgress(){
+  localStorage.setItem('eduPoints', points);
+  localStorage.setItem('eduBadges', JSON.stringify(badges));
+  localStorage.setItem('quizzes', JSON.stringify(quizzes));
+}
+
+// ================= Run on Page Load =================
+scanUserRole();
+</script>
+</body>
+</html>

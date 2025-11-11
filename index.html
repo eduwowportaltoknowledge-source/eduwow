@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduWow — Your Portal to Amazing Knowledge</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+body{overflow:hidden;min-height:100vh;background:#aee1f9}
+header{position:absolute;top:20px;left:50%;transform:translateX(-50%);text-align:center;z-index:10}
+.logo{font-size:2.5em;font-weight:700;color:#2b6cb0;display:flex;align-items:center;gap:10px;animation:bounce 2s infinite ease-in-out;text-shadow:1px 1px 3px rgba(0,0,0,.2)}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+/* Background layers */
+.bg-layer,.cloud-wrapper{position:fixed;top:0;left:0;width:150%;height:100%;overflow:hidden;z-index:0}
+.mountains{position:absolute;bottom:0;width:100%;height:70vh;z-index:1}
+.mountain{position:absolute;bottom:0;width:33.33%;height:100%;background:linear-gradient(to top,#5d4037 0%,#8d6e63 50%,#a1887f 100%);clip-path:polygon(50% 0%,0% 100%,100% 100%)}
+.mountain1{left:0}.mountain2{left:33.33%;transform:scale(1.1);z-index:2}.mountain3{left:66.67%;transform:scale(.9)}
+.mountain::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(45deg,rgba(255,255,255,.1) 0%,transparent 50%);clip-path:polygon(50% 0%,0% 100%,100% 100%)}
+.sun{position:absolute;top:50px;right:50px;width:100px;height:100px;background:yellow;border-radius:50%;box-shadow:0 0 30px rgba(255,255,0,.6);animation:rotateSun 20s linear infinite;z-index:2}
+@keyframes rotateSun{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+
+/* Clouds */
+.cloud{position:absolute;width:120px;height:60px;background:#fff;border-radius:50px;opacity:.9;box-shadow:0 5px 15px rgba(255,255,255,.3)}
+.cloud::before,.cloud::after{content:'';position:absolute;background:#fff;border-radius:50px}
+.cloud::before{width:80px;height:80px;top:-40px;left:10px}
+.cloud::after{width:60px;height:60px;top:-20px;right:10px}
+.cloud:nth-child(1){top:40px;left:-150px;animation:moveCloud1 45s linear infinite}
+.cloud:nth-child(2){top:80px;left:-200px;animation:moveCloud2 55s linear infinite}
+.cloud:nth-child(3){top:120px;left:-100px;animation:moveCloud3 60s linear infinite}
+.cloud:nth-child(4){top:160px;left:-250px;animation:moveCloud4 50s linear infinite}
+.cloud:nth-child(5){top:200px;left:-180px;animation:moveCloud5 65s linear infinite}
+.cloud:nth-child(6){top:60px;left:-300px;animation:moveCloud6 52s linear infinite}
+.cloud:nth-child(7){top:100px;left:-220px;animation:moveCloud7 58s linear infinite}
+.cloud:nth-child(8){top:140px;left:-120px;animation:moveCloud8 48s linear infinite}
+.cloud:nth-child(9){top:180px;left:-260px;animation:moveCloud9 62s linear infinite}
+.cloud:nth-child(10){top:220px;left:-160px;animation:moveCloud10 70s linear infinite}
+@keyframes moveCloud1{0%{transform:translateX(0)}100%{transform:translateX(120vw)}} 
+@keyframes moveCloud2{0%{transform:translateX(0)}100%{transform:translateX(130vw)}} 
+@keyframes moveCloud3{0%{transform:translateX(0)}100%{transform:translateX(110vw)}} 
+@keyframes moveCloud4{0%{transform:translateX(0)}100%{transform:translateX(140vw)}} 
+@keyframes moveCloud5{0%{transform:translateX(0)}100%{transform:translateX(125vw)}} 
+@keyframes moveCloud6{0%{transform:translateX(0)}100%{transform:translateX(115vw)}} 
+@keyframes moveCloud7{0%{transform:translateX(0)}100%{transform:translateX(135vw)}} 
+@keyframes moveCloud8{0%{transform:translateX(0)}100%{transform:translateX(105vw)}} 
+@keyframes moveCloud9{0%{transform:translateX(0)}100%{transform:translateX(145vw)}} 
+@keyframes moveCloud10{0%{transform:translateX(0)}100%{transform:translateX(120vw)}}
+
+/* Grass */
+.grass-container{position:absolute;bottom:0;width:100%;height:150px;overflow:hidden;z-index:3;background:linear-gradient(to top,#4CAF50 0%,#66BB6A 100%)}
+.grass-blade{position:absolute;bottom:0;width:8px;height:120px;background:linear-gradient(to top,#4CAF50,#66BB6A);border-radius:50% 50% 0 0;transform-origin:bottom center;animation:swayGrass 3s ease-in-out infinite alternate;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+.grass-blade:nth-child(odd){animation-delay:0s;animation-duration:2.5s}
+.grass-blade:nth-child(even){animation-delay:1s;animation-duration:3.5s}
+@keyframes swayGrass{0%{transform:rotate(-15deg) scaleY(1)}100%{transform:rotate(15deg) scaleY(1.1)}}
+
+/* Planes */
+.plane{position:absolute;width:45px;height:45px;z-index:5;animation:swirlPlane 20s linear infinite}
+.plane svg{width:100%;height:100%}
+.plane:nth-child(1){top:15%;left:-60px;animation-delay:0s;animation-duration:22s}
+.plane:nth-child(2){top:35%;left:-80px;animation-delay:7s;animation-duration:25s}
+.plane:nth-child(3){top:55%;left:-40px;animation-delay:14s;animation-duration:18s}
+.plane:nth-child(4){top:25%;left:-100px;animation-delay:3s;animation-duration:28s}
+.plane:nth-child(5){top:45%;left:-70px;animation-delay:10s;animation-duration:20s}
+@keyframes swirlPlane{0%{transform:translateX(-100px) translateY(0) rotate(0deg) scale(1)}20%{transform:translateX(20vw) translateY(-30px) rotate(180deg) scale(1.1)}40%{transform:translateX(50vw) translateY(40px) rotate(360deg) scale(1.2)}60%{transform:translateX(80vw) translateY(-20px) rotate(540deg) scale(1.1)}80%{transform:translateX(110vw) translateY(25px) rotate(720deg) scale(1)}100%{transform:translateX(140vw) translateY(0) rotate(900deg) scale(1)}}
+
+/* Running person */
+.running-person{position:absolute;bottom:100px;left:0;width:80px;height:120px;z-index:4;animation:runAcrossScreen 20s linear infinite;transform:scaleX(1);display:flex;align-items:flex-end}
+.running-person.reversed{transform:scaleX(-1)}
+.person-body{width:40px;height:80px;background-color:black;border-radius:50%/30%;position:relative}
+.person-head{width:40px;height:40px;background-color:black;border-radius:50%;position:absolute;top:5px;left:0}
+.person-arm{width:15px;height:50px;background-color:black;position:absolute;border-radius:10px;transform-origin:top center}
+.arm1{top:10px;left:-10px;transform:rotate(30deg)}.arm2{top:10px;right:-10px;transform:rotate(-30deg)}
+.person-leg{width:20px;height:60px;background-color:black;position:absolute;bottom:-50px;border-radius:10px;transform-origin:top center}
+.leg1{left:0;transform:rotate(20deg)}.leg2{right:0;transform:rotate(-20deg)}
+.held-balloon{position:absolute;bottom:90px;left:40px;width:40px;height:60px}
+.held-balloon svg{width:100%;height:100%}
+@keyframes runAcrossScreen{0%{left:-10%;transform:scaleX(1)}49%{left:100%;transform:scaleX(1)}50%{left:100%;transform:scaleX(-1)}99%{left:-10%;transform:scaleX(-1)}100%{left:-10%;transform:scaleX(1)}}
+
+/* Container / login-register */
+.container{position:fixed;top:140px;left:50%;transform:translateX(-50%);width:100%;max-width:400px;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.3);padding:2rem;border-radius:2rem;box-shadow:0 15px 35px rgba(0,0,0,.1);transition:.5s;z-index:6;max-height:78vh;overflow-y:auto;-ms-overflow-style:none;scrollbar-width:none}
+.container::-webkit-scrollbar{display:none}
+.hidden{opacity:0;pointer-events:none;transform:translateY(30px)}
+h2{text-align:center;color:#2b6cb0;margin-bottom:1rem;font-size:1.8em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:0 1rem;box-sizing:border-box}
+label{display:block;margin:10px 0 5px;color:#333;font-size:.95em}
+input,select{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;margin-bottom:15px;font-size:1em;transition:.3s;background:rgba(255,255,255,.9)}
+input:focus,select:focus{outline:none;border-color:#2b6cb0;box-shadow:0 0 8px rgba(43,108,176,.4)}
+button{width:100%;padding:12px;background:linear-gradient(to right,#2b6cb0,#3ca2f5);color:#fff;font-size:1.1em;border:none;border-radius:10px;cursor:pointer;transition:.3s}
+button:hover{transform:scale(1.05);box-shadow:0 6px 15px rgba(0,0,0,.2)}
+.link{text-align:center;margin-top:1rem;color:#2b6cb0;cursor:pointer;font-weight:500}
+</style>
+</head>
+<body>
+<div class="bg-layer">
+    <div class="sun"></div>
+    <div class="mountains">
+        <div class="mountain mountain1"></div>
+        <div class="mountain mountain2"></div>
+        <div class="mountain mountain3"></div>
+    </div>
+    <div class="cloud-wrapper">
+        <div class="cloud"></div><div class="cloud"></div><div class="cloud"></div><div class="cloud"></div><div class="cloud"></div>
+        <div class="cloud"></div><div class="cloud"></div><div class="cloud"></div><div class="cloud"></div><div class="cloud"></div>
+    </div>
+    <div class="grass-container" id="grassContainer"></div>
+    <div class="running-person">
+        <div class="person-head"></div>
+        <div class="person-body">
+            <div class="person-arm arm1"></div>
+            <div class="person-arm arm2"></div>
+            <div class="person-leg leg1"></div>
+            <div class="person-leg leg2"></div>
+        </div>
+        <div class="held-balloon">
+            <svg viewBox="0 0 50 80"><ellipse cx="25" cy="30" rx="18" ry="28" fill="#ff4d4d" stroke="#fff" stroke-width="2"/><line x1="25" y1="58" x2="25" y2="78" stroke="#333" stroke-width="2"/></svg>
+        </div>
+    </div>
+    <div class="plane">
+        <svg viewBox="0 0 50 50"><polygon points="0,25 50,0 40,25 50,50" fill="#ffcc00" stroke="#333" stroke-width="1"/><line x1="25" y1="25" x2="35" y2="15" stroke="#333" stroke-width="1"/></svg>
+    </div>
+    <div class="plane">
+        <svg viewBox="0 0 50 50"><polygon points="0,25 50,0 40,25 50,50" fill="#00ccff" stroke="#333" stroke-width="1"/><line x1="25" y1="25" x2="35" y2="15" stroke="#333" stroke-width="1"/></svg>
+    </div>
+    <div class="plane">
+        <svg viewBox="0 0 50 50"><polygon points="0,25 50,0 40,25 50,50" fill="#ff66cc" stroke="#333" stroke-width="1"/><line x1="25" y1="25" x2="35" y2="15" stroke="#333" stroke-width="1"/></svg>
+    </div>
+    <div class="plane">
+        <svg viewBox="0 0 50 50"><polygon points="0,25 50,0 40,25 50,50" fill="#ff9900" stroke="#333" stroke-width="1"/><line x1="25" y1="25" x2="35" y2="15" stroke="#333" stroke-width="1"/></svg>
+    </div>
+    <div class="plane">
+        <svg viewBox="0 0 50 50"><polygon points="0,25 50,0 40,25 50,50" fill="#66cc66" stroke="#333" stroke-width="1"/><line x1="25" y1="25" x2="35" y2="15" stroke="#333" stroke-width="1"/></svg>
+    </div>
+</div>
+
+<header>
+<div class="logo">🌟 EduWow</div>
+<div style="color:#555;font-size:0.95em;">Your Portal to Amazing Knowledge</div>
+</header>
+
+<div id="loginScreen" class="container">
+<h2>Login</h2>
+<label>Name</label>
+<input type="text" id="loginName" placeholder="Enter your name">
+<label>Password</label>
+<input type="password" id="loginPass" placeholder="Enter your password">
+<a href="dashboard.html">
+    <button onclick="login()">Login</button>
+</a>
+<div class="link" onclick="showRegister()">New here? Register</div>
+</div>
+
+<div id="registerScreen" class="container hidden">
+<h2>Register</h2>
+<label>Full Name</label>
+<input type="text" id="regName" placeholder="Enter your name">
+
+<label>Role</label>
+<select id="regRole" onchange="handleRoleChange()">
+<option value="student">Student</option>
+<option value="teacher">Teacher</option>
+</select>
+
+<label id="gradeLabel">Grade</label>
+<select id="regGrade" multiple>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+</select>
+
+<label id="parentLabel">Parent/Guardian Name</label>
+<input type="text" id="regParent" placeholder="Parent or guardian">
+
+<label>Password</label>
+<input type="password" id="regPass" placeholder="Enter password">
+<label>Retype Password</label>
+<input type="password" id="regPass2" placeholder="Retype password">
+
+<button onclick="register()">Register</button>
+<div class="link" onclick="showLogin()">Already have an account? Login</div>
+</div>
+
+<script>
+// Grass animation
+document.addEventListener('DOMContentLoaded',function(){
+  const grassContainer=document.getElementById('grassContainer');
+  const numBlades=300;
+  for(let i=0;i<numBlades;i++){
+    const blade=document.createElement('div');blade.className='grass-blade';
+    blade.style.left=Math.random()*100+'%';
+    blade.style.height=80+Math.random()*40+'px';
+    blade.style.animationDuration=2+Math.random()*2+'s';
+    grassContainer.appendChild(blade);
+  }
+});
+
+// Local storage users
+let users=JSON.parse(localStorage.getItem('users'))||[];
+
+function showRegister(){document.getElementById('loginScreen').classList.add('hidden');document.getElementById('registerScreen').classList.remove('hidden')}
+function showLogin(){document.getElementById('loginScreen').classList.remove('hidden');document.getElementById('registerScreen').classList.add('hidden')}
+function handleRoleChange(){
+  const role=document.getElementById('regRole').value;
+  document.getElementById('parentLabel').style.display=role==='teacher'?'none':'block';
+  document.getElementById('regParent').style.display=role==='teacher'?'none':'block';
+  document.getElementById('regGrade').multiple=role==='teacher'?true:false;
+}
+function register(){
+  const name=document.getElementById('regName').value.trim();
+  const role=document.getElementById('regRole').value;
+  let grades=Array.from(document.getElementById('regGrade').selectedOptions).map(o=>o.value);
+  if(role==='student'&&grades.length!==1){alert('Student must select exactly 1 grade');return;}
+  const parent=document.getElementById('regParent').value.trim();
+  const pass=document.getElementById('regPass').value;
+  const pass2=document.getElementById('regPass2').value;
+  if(pass!==pass2){alert('Passwords do not match');return;}
+  users.push({name:name,role:role,grades:grades,parent:role==='student'?parent:'',pass:pass});
+  localStorage.setItem('users',JSON.stringify(users));
+  alert('Registered successfully!');
+  showLogin();
+}
+function login(){
+  const name=document.getElementById('loginName').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const user=users.find(u=>u.name===name&&u.pass===pass);
+  if(user){localStorage.setItem('currentUser',JSON.stringify(user));window.location.href='dashboard.html';}
+  else alert('User not found or incorrect credentials');
+}
+</script>
+</body>
+</html>

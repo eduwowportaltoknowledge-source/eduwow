@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduWow Feedback</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+body{background:#aee1f9;min-height:100vh;overflow-x:hidden}
+header{position:fixed;top:0;left:0;width:100%;padding:15px;background:rgba(43,108,176,.9);color:#fff;text-align:center;font-size:1.5em;z-index:10}
+.container{max-width:800px;margin:120px auto 50px auto;padding:20px;background:rgba(255,255,255,0.9);border-radius:15px;box-shadow:0 10px 25px rgba(0,0,0,.15);overflow-y:auto;max-height:75vh}
+h2{text-align:center;color:#2b6cb0;margin-bottom:20px}
+.feedback-list{list-style:none;padding:0}
+.feedback-item{background:#f0f8ff;padding:15px;border-radius:12px;margin-bottom:12px;box-shadow:0 3px 10px rgba(0,0,0,.1)}
+.feedback-item strong{color:#2b6cb0}
+.feedback-item .date{font-size:0.8em;color:#666;margin-top:5px}
+textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;margin-bottom:10px;resize:none;font-size:1em}
+button{padding:10px 15px;background:linear-gradient(to right,#2b6cb0,#3ca2f5);border:none;color:#fff;border-radius:10px;font-size:1em;cursor:pointer;transition:.3s}
+button:hover{transform:scale(1.05);box-shadow:0 6px 15px rgba(0,0,0,.2)}
+.info{color:#333;font-size:0.9em;margin-bottom:15px;text-align:center}
+</style>
+</head>
+<body>
+<header>🌟 EduWow Feedback</header>
+
+<div class="container">
+<h2>Feedback Center</h2>
+<div id="userInfo" class="info"></div>
+
+<ul id="feedbackList" class="feedback-list"></ul>
+
+<!-- Teacher feedback form -->
+<div id="feedbackFormContainer" style="display:none">
+<textarea id="feedbackText" rows="4" placeholder="Write feedback here..."></textarea>
+<button onclick="submitFeedback()">Submit Feedback</button>
+</div>
+</div>
+
+<script>
+// Retrieve current user
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+const users = JSON.parse(localStorage.getItem('users')) || [];
+const feedbacks = JSON.parse(localStorage.getItem('feedbacks')) || [];
+
+// Role-based display
+const userInfo = document.getElementById('userInfo');
+const feedbackList = document.getElementById('feedbackList');
+const feedbackFormContainer = document.getElementById('feedbackFormContainer');
+
+if(!currentUser){alert('No user logged in');window.location.href='index.html';}
+
+// Show current user info
+userInfo.textContent = `${currentUser.role.charAt(0).toUpperCase()+currentUser.role.slice(1)}: ${currentUser.name}`;
+
+// Load feedback
+function loadFeedback(){
+    feedbackList.innerHTML = '';
+    let relevantFeedback = [];
+    if(currentUser.role === 'student'){
+        // Show only feedback for this student
+        relevantFeedback = feedbacks.filter(f => f.student === currentUser.name);
+        if(relevantFeedback.length===0){
+            feedbackList.innerHTML = '<li class="feedback-item">No feedback yet. 📝</li>';
+        }
+    } else {
+        // Teacher sees all students feedback
+        relevantFeedback = feedbacks;
+        feedbackFormContainer.style.display = 'block';
+    }
+
+    relevantFeedback.forEach(f => {
+        const li = document.createElement('li');
+        li.className = 'feedback-item';
+        li.innerHTML = `<strong>${f.teacher}</strong> commented on <strong>${f.student}</strong>:<br>${f.comment}<div class="date">${f.date}</div>`;
+        feedbackList.appendChild(li);
+    });
+}
+
+loadFeedback();
+
+// Teacher submit feedback
+function submitFeedback(){
+    const text = document.getElementById('feedbackText').value.trim();
+    if(text === ''){alert('Feedback cannot be empty'); return;}
+    const studentName = prompt('Enter student name to leave feedback for:');
+    const student = users.find(u=>u.name===studentName && u.role==='student');
+    if(!student){alert('Student not found'); return;}
+    const newFeedback = {
+        teacher: currentUser.name,
+        student: student.name,
+        comment: text,
+        date: new Date().toLocaleString()
+    };
+    feedbacks.push(newFeedback);
+    localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
+    document.getElementById('feedbackText').value='';
+    loadFeedback();
+}
+</script>
+</body>
+</html>

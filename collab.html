@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Collaborative Groups</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  background: linear-gradient(to bottom, #4fc3f7, #0288d1);
+}
+.container{
+  background: rgba(255,255,255,0.95);
+  border-radius:20px;
+  padding:30px;
+  max-width:500px;
+  width:100%;
+  box-shadow:0 10px 25px rgba(0,0,0,0.2);
+  text-align:center;
+}
+.card{
+  background:#E3F2FD;
+  padding:20px;
+  border-radius:15px;
+  margin-bottom:20px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+h2,h3{color:#0288d1;margin-bottom:15px;}
+button{
+  padding:10px 15px;
+  margin:5px;
+  background:#03a9f4;
+  color:white;
+  border:none;
+  border-radius:15px;
+  cursor:pointer;
+  font-weight:600;
+  transition:0.3s;
+}
+button:hover{background:#0288d1;}
+input,textarea{
+  width:100%;padding:10px;margin:5px 0 10px 0;border-radius:10px;border:2px solid #03a9f4;font-size:14px;
+}
+.groupButton{
+  display:block;
+  width:100%;
+  margin:5px 0;
+  text-align:left;
+  padding-left:10px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Collaborative Groups</h2>
+
+  <!-- Create/Join -->
+  <div class="card" id="createJoinCard">
+    <h3>Create or Join Group</h3>
+    <input type="text" id="groupName" placeholder="Enter Group Name">
+    <button id="createBtn">Create Group</button>
+    <button id="joinBtn">Join Group</button>
+    <p id="groupStatus"></p>
+  </div>
+
+  <!-- Group Activity -->
+  <div class="card" id="groupActivityCard" style="display:none;">
+    <h3 id="activityTitle"></h3>
+    <p><strong>Members:</strong> <span id="memberList"></span></p>
+    <label>Task/Activity:</label>
+    <textarea id="taskInput" rows="4" placeholder="Describe the activity"></textarea>
+    <button id="saveTaskBtn">Save Task</button>
+    <p><strong>Saved Task:</strong></p>
+    <p id="taskDisplay"></p>
+    <button id="backBtn">Back to Groups</button>
+  </div>
+
+  <!-- User Groups -->
+  <div class="card" id="myGroupsCard">
+    <h3>My Groups</h3>
+    <div id="myGroupsList"></div>
+  </div>
+
+</div>
+
+<script>
+// --- Reset localStorage if testing ---
+if(!localStorage.getItem('groups')) localStorage.setItem('groups', JSON.stringify({}));
+if(!localStorage.getItem('currentUser')) localStorage.setItem('currentUser', JSON.stringify({name:'Student1', groups:[]}));
+
+// Load from localStorage
+let groups = JSON.parse(localStorage.getItem('groups'));
+let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+let currentGroup = null;
+
+// --- Save data ---
+function saveData(){
+    localStorage.setItem('groups', JSON.stringify(groups));
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+}
+
+// --- Render user groups ---
+function renderGroups(){
+    const container = document.getElementById('myGroupsList');
+    container.innerHTML = '';
+    currentUser.groups.forEach(name => {
+        const btn = document.createElement('button');
+        btn.className = 'groupButton';
+        btn.textContent = name;
+        btn.onclick = () => openGroup(name);
+        container.appendChild(btn);
+    });
+}
+
+// --- Open group activity ---
+function openGroup(name){
+    currentGroup = name;
+    document.getElementById('createJoinCard').style.display = 'none';
+    document.getElementById('groupActivityCard').style.display = 'block';
+    document.getElementById('activityTitle').textContent = 'Group: ' + name;
+    document.getElementById('memberList').textContent = groups[name].members.join(', ');
+    document.getElementById('taskInput').value = groups[name].task || '';
+    document.getElementById('taskDisplay').textContent = groups[name].task || '';
+}
+
+// --- Back to group list ---
+document.getElementById('backBtn').addEventListener('click', ()=>{
+    document.getElementById('createJoinCard').style.display = 'block';
+    document.getElementById('groupActivityCard').style.display = 'none';
+    renderGroups();
+});
+
+// --- Create group ---
+document.getElementById('createBtn').addEventListener('click', ()=>{
+    const name = document.getElementById('groupName').value.trim();
+    if(!name){ alert('Enter group name'); return; }
+    if(groups[name]){ alert('Group already exists!'); return; }
+    groups[name] = {members:[currentUser.name], task:''};
+    if(!currentUser.groups.includes(name)) currentUser.groups.push(name);
+    saveData();
+    document.getElementById('groupStatus').textContent = `Created and joined "${name}"`;
+    renderGroups();
+    openGroup(name);
+});
+
+// --- Join group ---
+document.getElementById('joinBtn').addEventListener('click', ()=>{
+    const name = document.getElementById('groupName').value.trim();
+    if(!name){ alert('Enter group name'); return; }
+    if(!groups[name]){ alert('Group does not exist!'); return; }
+    if(!groups[name].members.includes(currentUser.name)) groups[name].members.push(currentUser.name);
+    if(!currentUser.groups.includes(name)) currentUser.groups.push(name);
+    saveData();
+    document.getElementById('groupStatus').textContent = `Joined "${name}"`;
+    renderGroups();
+    openGroup(name);
+});
+
+// --- Save task ---
+document.getElementById('saveTaskBtn').addEventListener('click', ()=>{
+    const task = document.getElementById('taskInput').value.trim();
+    if(!task){ alert('Enter a task'); return; }
+    groups[currentGroup].task = task;
+    saveData();
+    document.getElementById('taskDisplay').textContent = task;
+});
+
+// --- Initial render ---
+renderGroups();
+</script>
+
+</body>
+</html>
